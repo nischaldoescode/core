@@ -65,10 +65,6 @@ export class VixSrcProvider extends BaseProvider {
             // Parse playlist content
             const result = this.parsePlaylist(playlistContent, masterUrl, pageUrl, media);
 
-            if (result.sources.length > 0) {
-            } else {
-            }
-
             return result;
         } catch (error) {
             return this.emptyResult(error instanceof Error ? error.message : 'Unknown provider error', media);

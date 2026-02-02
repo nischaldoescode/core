@@ -148,13 +148,7 @@ export class VidZeeProvider extends BaseProvider {
                 timeout: 8000,
             });
 
-            const data = response.data;
-
-            if (data && typeof data === 'object' && typeof (data as any).thumbnail === 'string' && Array.isArray((data as any).url) && Array.isArray((data as any).tracks)) {
-                return data as StreamResponse;
-            }
-
-            return null;
+            return response.data as StreamResponse;
         } catch {
             return null;
         }
