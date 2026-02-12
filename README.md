@@ -2,6 +2,8 @@
 
 # CinePro Core 🎬
 
+## _🌟 Please star this repository! 🌟_
+
 **OMSS-compliant streaming backend powering the CinePro ecosystem.**</br> Built with [@omss/framework](https://www.npmjs.com/package/@omss/framework) for extensible, type-safe media scraping and streaming.
 
 </div>
@@ -21,7 +23,7 @@ Built on the [OMSS template](https://github.com/omss-spec/template), this backen
 - 🎯 **OMSS-Compliant** – Follows the Open Media Streaming Standard specification
 - 🔌 **Modular Providers** – Drop-in provider system with auto-discovery
 - 🛡️ **Type-Safe** – Full TypeScript implementation with strict types
-- ⚡ **Production-Ready** – Redis caching, Docker support, error handling
+- ⚡ **Production-Ready** – Redis caching, Docker support (soon), error handling
 - 🎬 **Multi-Source** – Support for movies and TV shows from multiple providers
 - 🔄 **Hot Reload** – Development mode with automatic restarts
 - 📦 **CineHome Integration** – Compatible with CineHome download automation and any other CinePro ecosystem products
