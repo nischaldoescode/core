@@ -45,12 +45,6 @@ export class VidZeeProvider extends BaseProvider {
     private async getSources(media: ProviderMediaObject, params: { type: 'movie' | 'tv'; season?: string; episode?: string }): Promise<ProviderResult> {
         try {
             const tmdbId = media.tmdbId;
-            this.console.debug('VidZee scrape started', {
-                tmdbId,
-                type: params.type,
-                ...(params.season && { season: params.season }),
-                ...(params.episode && { episode: params.episode }),
-            });
 
             // 1. Parallel server requests
             const serverPromises = Array.from({ length: 14 }, (_, serverId) => this.fetchServer(tmdbId, serverId, params));
@@ -101,13 +95,17 @@ export class VidZeeProvider extends BaseProvider {
             const uniqueLinks = [...new Set(allDecryptedLinks)].filter((link) => link && link.startsWith('http'));
 
             const sources: Source[] = uniqueLinks.map((link) => ({
-                url: this.createProxyUrl(link, {
+                url: this.createProxyUrl(link, link.includes('fast33lane') ? {"referer":"https://rapidairmax.site/","origin":"https://rapidairmax.site"} : {
                     ...this.HEADERS,
                     Referer: `${this.BASE_URL}/`,
                 }),
                 type: this.inferType(link) as SourceType,
                 quality: this.inferQuality(link),
                 audioTracks: [
+                    link.includes('phim1280.tv') ? {
+                        language: 'vie',
+                        label: 'Vietnamese',
+                    } :
                     {
                         language: 'eng',
                         label: 'English',
@@ -119,7 +117,7 @@ export class VidZeeProvider extends BaseProvider {
                 },
             }));
 
-            this.console.success(`${sources.length} unique decrypted sources, ${allSubtitles.size} subtitles`, media);
+            console.log('Sources generated:', sources);
 
             return {
                 sources,
@@ -127,7 +125,6 @@ export class VidZeeProvider extends BaseProvider {
                 diagnostics: [],
             };
         } catch (error) {
-            this.console.error('VidZee failed completely', error, media);
             return this.emptyResult(error instanceof Error ? error.message : 'Unknown error', media);
         }
     }
@@ -159,7 +156,6 @@ export class VidZeeProvider extends BaseProvider {
      */
     private emptyResult(message: string, media: ProviderMediaObject): ProviderResult {
         // @ts-ignore
-        this.console.warn('VidZee: Empty result', { message, tmdbId: media.tmdbId });
         return {
             sources: [],
             subtitles: [],

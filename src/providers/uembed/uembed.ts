@@ -83,7 +83,7 @@ export class UembedProvider extends BaseProvider {
                     const urlOrigin = new URL(variant.url).origin;
 
                     sources.push({
-                        url: this.createProxyUrl(variant.url, {
+                        url: this.createProxyUrl(variant.url, variant.url.includes('xpass.top') ? {} :{
                             ...this.HEADERS,
                             Referer: `${urlOrigin}/`,
                             Origin: urlOrigin,

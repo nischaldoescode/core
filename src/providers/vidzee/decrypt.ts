@@ -47,7 +47,6 @@ export default async function decrypt(urls: StreamUrl[]): Promise<string[]> {
 
         return results;
     } catch (error) {
-        console.error('Vidzee decrypt failed:', error);
         throw new Error('Vidzee Decrypt failed: ' + (error as Error).message);
     }
 }

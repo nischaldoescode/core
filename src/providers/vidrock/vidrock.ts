@@ -3,6 +3,7 @@ import type { ProviderCapabilities, ProviderMediaObject, ProviderResult, Source,
 import axios from 'axios';
 import { encryptItemId } from './encrypt.js';
 import { VidrockStreams, VidrockCDN } from './vidrock.types.js';
+import { ref } from 'node:process';
 
 const PROXY_PREFIX = 'https://proxy.vidrock.store/';
 
@@ -80,7 +81,10 @@ export class VidRockProvider extends BaseProvider {
 
                     continue;
                 } else {
-                    finalUrl = this.createProxyUrl(stream.url, { ...this.HEADERS, Referer: pageUrl });
+                    finalUrl = this.createProxyUrl(stream.url, stream.url.includes('67streams') ? {
+                        referrer: this.BASE_URL,
+                        origin: this.BASE_URL.replace('net/', 'net'),
+                    } :  { ...this.HEADERS, Referer: pageUrl });
                 }
 
                 sources.push({
