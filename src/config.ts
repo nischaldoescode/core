@@ -60,12 +60,12 @@ export const knownThirdPartyProxies: Record<string, RegExp[]> = {
     // These are checked AFTER origin-specific patterns
 
     '*': [
+        /^https:\/\/[^/]+\.workers\.dev\/((?:https?:\/\/)?[^/]+\/file2\/.+)$/, // any workers.dev/[domain]/file2/[content] capturer
         /\/proxy\/(.+)$/, // Generic /proxy/encoded
         /\/m3u8-proxy\?url=(.+?)(?:&|$)/, // m3u8-proxy?url=
         /\/api\/[^/]+\/proxy\?url=(.+)$/, // /api/*/proxy?url=
         /\/proxy\?.*url=([^&]+)/, // /proxy?url= (with other params)
-        /\/stream\/proxy\/(.+)$/, // /stream/proxy/
-        /\/p\/(.+)$/ // Short proxy like /p/
+        /\/stream\/proxy\/(.+)$/ // /stream/proxy/
     ]
 };
 

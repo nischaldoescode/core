@@ -54,7 +54,6 @@ export class VidRockProvider extends BaseProvider {
 
             const sources: Source[] = [];
 
-            // SOURCES LOGIC (UNCHANGED)
             for (const [_, stream] of Object.entries(resp)) {
                 if (!stream?.url) continue;
 

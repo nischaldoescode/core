@@ -16,8 +16,8 @@ import type {
 export class Fmovies4U extends BaseProvider {
     readonly id = 'fmovies4u';
     readonly name = 'Fmovies4U';
-    readonly enabled = false;
     // disabled since fmovies4u is currently broken... the logic is probably the same later on
+    readonly enabled = false;
     readonly BASE_URL = 'https://fmovies4u.com';
     readonly HEADERS = {
         'User-Agent':
@@ -115,10 +115,18 @@ export class Fmovies4U extends BaseProvider {
                     'hls') as SourceType;
 
                 sources.push({
-                    url: this.createProxyUrl(stream.link, {
-                        ...this.HEADERS,
-                        Referer: this.buildRefererUrl(media)
-                    }),
+                    url: this.createProxyUrl(
+                        stream.link,
+                        stream.link.includes('file2')
+                            ? {
+                                  referer: 'https://videostr.net/',
+                                  origin: 'https://videostr.net'
+                              }
+                            : {
+                                  ...this.HEADERS,
+                                  Referer: this.buildRefererUrl(media)
+                              }
+                    ),
                     type,
                     quality: stream.quality || 'HD',
                     provider: {
