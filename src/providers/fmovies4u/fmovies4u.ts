@@ -36,7 +36,7 @@ export class Fmovies4U extends BaseProvider {
      */
     async getMovieSources(media: ProviderMediaObject): Promise<ProviderResult> {
         return this.getSources(media, {
-            type: 'movie',
+            type: 'movie'
         });
     }
 
@@ -101,7 +101,10 @@ export class Fmovies4U extends BaseProvider {
     /**
      * Map decrypted API response to OMSS ProviderResult
      */
-    private mapApiResponseToResult(apiResponse: ApiResponse, media: ProviderMediaObject): ProviderResult {
+    private mapApiResponseToResult(
+        apiResponse: ApiResponse,
+        media: ProviderMediaObject
+    ): ProviderResult {
         const sources: Source[] = [];
         const subtitles: Subtitle[] = [];
 

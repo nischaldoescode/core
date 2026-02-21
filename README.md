@@ -107,8 +107,8 @@ export class MySiteProvider extends BaseProvider {
     readonly id = 'mysite';
     readonly name = 'My Streaming Site';
     readonly BASE_URL = 'https://mysite.com';
-    readonly capabilities = { 
-        supportedContentTypes: ['movies', 'tv'] 
+    readonly capabilities = {
+        supportedContentTypes: ['movies', 'tv']
     };
 
     async getMovieSources(tmdbId: string) {
@@ -231,7 +231,7 @@ MIT © CinePro Organization
 
 <div align="center">
 
-**[Documentation](https://cinepro.mintlify.app)** -  **[Discussions](https://github.com/orgs/cinepro-org/discussions/)** -  **[Report Issue](https://github.com/cinepro-org/core/issues)**
+**[Documentation](https://cinepro.mintlify.app)** - **[Discussions](https://github.com/orgs/cinepro-org/discussions/)** - **[Report Issue](https://github.com/cinepro-org/core/issues)**
 
 ⭐ **Star this repo** if you find it useful!
 
