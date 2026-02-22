@@ -128,7 +128,7 @@ export class VidZeeProvider extends BaseProvider {
                               Referer: `${this.BASE_URL}/`
                           }
                 ),
-                type: this.inferType(link) as SourceType,
+                type: 'hls' as SourceType,
                 quality: this.inferQuality(link),
                 audioTracks: [
                     link.includes('phim1280.tv')
