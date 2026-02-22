@@ -51,7 +51,6 @@ export class RgShowsProvider extends BaseProvider {
         try {
             // Build page URL
             const pageUrl = this.buildPageUrl(media);
-            this.console.log(`Fetching URL: ${pageUrl}`);
 
             // Fetch page json
             const data = await this.fetchPage(pageUrl, media);
