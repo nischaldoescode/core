@@ -25,6 +25,7 @@ Before reporting a security vulnerability, please determine where the issue orig
 #### 1. Framework-Level Vulnerabilities
 
 If the vulnerability is related to:
+
 - Core routing or API endpoints
 - Proxy system implementation
 - TMDB integration
@@ -67,10 +68,10 @@ When reporting a vulnerability, please include:
 5. **Proof of Concept**: Code or requests demonstrating the vulnerability
 6. **Suggested Fix**: If you have ideas on how to fix it (optional)
 7. **Environment Details**:
-   - CinePro Core version
-   - @omss/framework version
-   - Node.js version
-   - Operating system
+    - CinePro Core version
+    - @omss/framework version
+    - Node.js version
+    - Operating system
 
 ### Response Timeline
 
@@ -153,9 +154,9 @@ Our dependencies include:
 
 ```json
 {
-  "@omss/framework": "^1.1.10",   // Core backend logic
-  "crypto-js": "^4.2.0",          // Cryptographic utilities
-  "dotenv": "^16.4.5"             // Environment configuration
+    "@omss/framework": "^1.1.10", // Core backend logic
+    "crypto-js": "^4.2.0", // Cryptographic utilities
+    "dotenv": "^16.4.5" // Environment configuration
 }
 ```
 

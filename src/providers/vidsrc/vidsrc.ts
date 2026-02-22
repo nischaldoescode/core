@@ -93,10 +93,12 @@ export class VidSrcProvider extends BaseProvider {
                 }),
                 type: 'hls', // m3u8 = HLS streaming
                 quality: `up to HD`, // VidSrc does not provide explicit quality labels, so we use a generic one
-                audioTracks: [{
-                    label: 'English',
-                    language: 'eng'
-                }], // No audio track info available
+                audioTracks: [
+                    {
+                        label: 'English',
+                        language: 'eng'
+                    }
+                ], // No audio track info available
                 provider: {
                     id: this.id,
                     name: this.name
@@ -225,7 +227,9 @@ export class VidSrcProvider extends BaseProvider {
             return url;
         });
 
-        const filteredM3u8Urls = m3u8Urls.filter((url): url is string => url !== null);
+        const filteredM3u8Urls = m3u8Urls.filter(
+            (url): url is string => url !== null
+        );
 
         return filteredM3u8Urls.length > 0 ? filteredM3u8Urls : null;
     }

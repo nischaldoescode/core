@@ -37,9 +37,9 @@ Closes #
 
 <!-- List the specific changes made in this PR -->
 
-- 
-- 
-- 
+-
+-
+-
 
 ## Provider Information (if applicable)
 
@@ -47,12 +47,12 @@ Closes #
 
 ### Provider Details
 
-- **Provider Name**: 
-- **Provider ID**: 
-- **Base URL**: 
-- **Content Types Supported**: 
-  - [ ] Movies
-  - [ ] TV Shows
+- **Provider Name**:
+- **Provider ID**:
+- **Base URL**:
+- **Content Types Supported**:
+    - [ ] Movies
+    - [ ] TV Shows
 
 ### Provider Testing
 
@@ -61,14 +61,14 @@ Closes #
 **Tested with the following TMDB IDs:**
 
 - Movies:
-  - [ ] TMDB ID: 550 (Fight Club)
-  - [ ] TMDB ID: _____ (Your test movie)
-  
+    - [ ] TMDB ID: 550 (Fight Club)
+    - [ ] TMDB ID: **\_** (Your test movie)
 - TV Shows:
-  - [ ] TMDB ID: 1399/1/1 (Game of Thrones S01E01)
-  - [ ] TMDB ID: _____ (Your test episode)
+    - [ ] TMDB ID: 1399/1/1 (Game of Thrones S01E01)
+    - [ ] TMDB ID: **\_** (Your test episode)
 
 **Test Results:**
+
 <!-- Describe what happened during testing -->
 
 ```
@@ -120,15 +120,16 @@ Paste relevant API response or logs here
 <!-- Describe the tests you ran to verify your changes -->
 
 **Test Configuration:**
-- Node.js version: 
-- Operating System: 
+
+- Node.js version:
+- Operating System:
 - Cache type used: (memory/redis)
 
 **Testing Steps:**
 
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 ### Test Output
 
@@ -156,26 +157,22 @@ Paste test output here
 
 **Details:**
 
-
 ### Breaking Changes
 
 <!-- If this PR includes breaking changes, describe them here -->
 
 **Details:**
 
-
 ### Dependencies
 
 <!-- List any new dependencies added or updated -->
 
-- 
-- 
+-
+-
 
 ## Reviewer Notes
 
 <!-- Any specific areas you'd like reviewers to focus on? -->
-
-
 
 ---
 
