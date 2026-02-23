@@ -81,14 +81,19 @@ export class MovieDownloader extends BaseProvider {
         // Map download sources
         if (data.data?.downloadData?.data?.downloads) {
             data.data.downloadData.data.downloads.forEach((download) => {
-                // skip hakunaymatata links. IF ANYONE KNOWS THE HEADERS, PLEASE ADD THEM!
-                if (download.url.includes('hakunaymatata')) {
-                    return;
-                }
                 sources.push({
-                    url: this.createProxyUrl(download.url, this.HEADERS),
+                    url: this.createProxyUrl(
+                        download.url,
+                        download.url.includes('hakunaymatata')
+                            ? {
+                                  ...this.HEADERS,
+                                  Referer: 'https://lok-lok.cc/',
+                                  Origin: 'https://lok-lok.cc/'
+                              }
+                            : this.HEADERS
+                    ),
                     type: 'mp4',
-                    quality: download.resolution.toString(),
+                    quality: download.resolution.toString() + 'p',
                     audioTracks: [
                         {
                             language: 'eng',
@@ -115,7 +120,7 @@ export class MovieDownloader extends BaseProvider {
                     : 'mp4';
 
                 // skip a.111477.xyz as they are behind cloudflare, and do not allow direct access to the video file
-                if (stream.url.includes('a.111477.xyz')) {
+                if (stream.url.includes('111477.xyz')) {
                     return;
                 }
 
@@ -144,7 +149,7 @@ export class MovieDownloader extends BaseProvider {
                 const format = caption.url.includes('.srt') ? 'srt' : 'vtt';
 
                 subtitles.push({
-                    url: caption.url,
+                    url: this.createProxyUrl(caption.url),
                     label: caption.lanName || caption.lan,
                     format: format as SubtitleFormat
                 });
