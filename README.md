@@ -2,7 +2,7 @@
 
 # CinePro Core 🎬
 
-## _🌟 Please star this repository! 🌟_
+## _🌟 Star this repository to support us! 🌟_
 
 **OMSS-compliant streaming backend powering the CinePro ecosystem.**</br> Built with [@omss/framework](https://www.npmjs.com/package/@omss/framework) for extensible, type-safe media scraping and streaming.
 
@@ -23,10 +23,12 @@ Built on the [OMSS template](https://github.com/omss-spec/template), this backen
 - 🎯 **OMSS-Compliant** – Follows the Open Media Streaming Standard specification
 - 🔌 **Modular Providers** – Drop-in provider system with auto-discovery
 - 🛡️ **Type-Safe** – Full TypeScript implementation with strict types
-- ⚡ **Production-Ready** – Redis caching, Docker support (soon), error handling
+- ⚡ **Production-Ready** – Redis caching, Docker support, error handling
 - 🎬 **Multi-Source** – Support for movies and TV shows from multiple providers
 - 🔄 **Hot Reload** – Development mode with automatic restarts
 - 📦 **CineHome Integration** – Compatible with CineHome download automation and any other CinePro ecosystem products
+
+✨Please star this repository if you find it useful! It helps us gain visibility and continue improving the project!✨
 
 ---
 
@@ -76,6 +78,46 @@ npm run build
 npm start
 ```
 
+### Docker Deployment
+
+#### With Docker Compose (includes Redis)
+
+```bash
+# Create .env file with your TMDB_API_KEY
+cp .env.example .env
+# Edit .env and add your TMDB_API_KEY
+
+# Start services
+docker-compose up -d
+
+# Server runs at http://localhost:3000 or whatever you set in .env
+```
+
+#### Standalone Docker
+
+```bash
+# Build image
+docker build -t cinepro-core:latest .
+
+# Run with memory cache
+docker run -p 3000:3000 \
+  -e TMDB_API_KEY=your_tmdb_api_key_here \
+  -e CACHE_TYPE=memory \
+  cinepro-core:latest
+```
+
+#### Custom Configuration
+
+```bash
+# Custom port and Redis
+docker run -p 8080:8080 \
+  -e PORT=8080 \
+  -e TMDB_API_KEY=your_key \
+  -e CACHE_TYPE=redis \
+  -e REDIS_HOST=your-redis-host \
+  cinepro-core:latest
+```
+
 ---
 
 ## 📁 Project Structure
@@ -90,40 +132,6 @@ core/
 ├── package.json            # Dependencies and scripts
 └── tsconfig.json           # TypeScript configuration
 ```
-
----
-
-## 🔌 Adding Providers
-
-CinePro Core uses an extensible provider system. Each provider implements the `BaseProvider` interface to supply streaming sources.
-
-### Create a New Provider
-
-```typescript
-// src/providers/mysite.ts
-import { BaseProvider } from '@omss/framework';
-
-export class MySiteProvider extends BaseProvider {
-    readonly id = 'mysite';
-    readonly name = 'My Streaming Site';
-    readonly BASE_URL = 'https://mysite.com';
-    readonly capabilities = {
-        supportedContentTypes: ['movies', 'tv']
-    };
-
-    async getMovieSources(tmdbId: string) {
-        // Implementation
-    }
-
-    async getTVSources(tmdbId: string, season: number, episode: number) {
-        // Implementation
-    }
-}
-```
-
-### Auto-Discovery
-
-Place your provider in `src/providers/` and restart the server. The framework automatically discovers and registers new providers.
 
 ---
 
