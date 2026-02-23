@@ -84,7 +84,7 @@ export class VidRockProvider extends BaseProvider {
                                 Referer: 'https://lok-lok.cc/',
                                 Origin: 'https://lok-lok.cc/'
                             }),
-                            type: 'hls',
+                            type: obj.url.includes('.mp4') ? 'mp4' : 'hls',
                             quality: obj.resolution + 'p',
                             audioTracks: [
                                 {

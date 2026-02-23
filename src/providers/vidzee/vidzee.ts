@@ -123,12 +123,14 @@ export class VidZeeProvider extends BaseProvider {
                               referer: 'https://rapidairmax.site/',
                               origin: 'https://rapidairmax.site'
                           }
-                        : {
-                              ...this.HEADERS,
-                              Referer: `${this.BASE_URL}/`
-                          }
+                        : link.includes('serversicuro.cc')
+                          ? {}
+                          : {
+                                ...this.HEADERS,
+                                Referer: `${this.BASE_URL}/`
+                            }
                 ),
-                type: this.inferType(link) as SourceType,
+                type: 'hls' as SourceType,
                 quality: this.inferQuality(link),
                 audioTracks: [
                     link.includes('phim1280.tv')

@@ -178,7 +178,7 @@ export class Fmovies4U extends BaseProvider {
                     else if (ext === 'ttml' || ext === 'xml') format = 'ttml';
 
                     subtitles.push({
-                        url,
+                        url: this.createProxyUrl(url),
                         label,
                         format
                     });

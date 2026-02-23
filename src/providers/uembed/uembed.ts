@@ -136,11 +136,16 @@ export class UembedProvider extends BaseProvider {
                 const urlOrigin = new URL(stream.file).origin;
 
                 sources.push({
-                    url: this.createProxyUrl(stream.file, {
-                        ...this.HEADERS,
-                        Referer: `${urlOrigin}/`,
-                        Origin: urlOrigin
-                    }),
+                    url: this.createProxyUrl(
+                        stream.file,
+                        stream.file.includes('xpass.top')
+                            ? {}
+                            : {
+                                  ...this.HEADERS,
+                                  Referer: `${urlOrigin}/`,
+                                  Origin: urlOrigin
+                              }
+                    ),
                     type: 'hls',
                     quality: this.extractQualityFromUrl(stream.file),
                     audioTracks: [
