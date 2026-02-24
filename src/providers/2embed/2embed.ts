@@ -1,6 +1,3 @@
-// 2embed.ts
-// provider for 2embed.cc
-
 import { BaseProvider } from '@omss/framework';
 import type {
     ProviderCapabilities,
@@ -20,21 +17,20 @@ import type {
     TwoEmbedLinks
 } from './2embed.types.js';
 
-const DOMAIN = 'https://www.2embed.cc';
-const PLAYER_URL = 'https://uqloads.xyz';
 
 export class TwoEmbedProvider extends BaseProvider {
     readonly id = 'twoembed';
     readonly name = '2Embed';
     readonly enabled = true;
-    readonly BASE_URL = DOMAIN;
+    readonly BASE_URL = 'https://www.2embed.cc';
+    readonly PLAYER_URL = 'https://uqloads.xyz';
     readonly HEADERS = {
         'User-Agent':
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
         Accept: 'application/json, text/javascript, */*; q=0.01',
         'Accept-Language': 'en-US,en;q=0.9',
-        Referer: DOMAIN,
-        Origin: DOMAIN
+        Referer: this.BASE_URL,
+        Origin: this.BASE_URL
     };
 
     readonly capabilities: ProviderCapabilities = {
@@ -213,7 +209,7 @@ export class TwoEmbedProvider extends BaseProvider {
 
             if (isSwishId) {
                 const resolved = await this.resolveStream(
-                    `${PLAYER_URL}/e/${extractedValue}`,
+                    `${this.PLAYER_URL}/e/${extractedValue}`,
                     this.BASE_URL
                 );
 
@@ -294,7 +290,7 @@ export class TwoEmbedProvider extends BaseProvider {
                     );
                 }
 
-                const resolveUrl = `${PLAYER_URL}/e/${idMatch[1]}`;
+                const resolveUrl = `${this.PLAYER_URL}/e/${idMatch[1]}`;
 
                 const resolved = await this.resolveStream(
                     resolveUrl,
