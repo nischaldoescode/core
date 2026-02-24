@@ -1,8 +1,6 @@
 // twoembed.types.ts
 // type definitions for 2embed player response structures
-import type {
-    Subtitle
-} from '@omss/framework';
+import type { Subtitle } from '@omss/framework';
 
 // quality option scraped from player4u list page
 export interface TwoEmbedQualityOption {

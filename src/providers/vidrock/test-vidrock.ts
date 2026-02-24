@@ -59,7 +59,9 @@ function printResult(
 ) {
     console.log('\n========================================');
     console.log(`${label}`);
-    console.log(`[media]  type=${media.type} tmdbId=${media.tmdbId}${media.type === 'tv' ? ` s=${media.s} e=${media.e}` : ''} title=${media.title ?? 'n/a'}`);
+    console.log(
+        `[media]  type=${media.type} tmdbId=${media.tmdbId}${media.type === 'tv' ? ` s=${media.s} e=${media.e}` : ''} title=${media.title ?? 'n/a'}`
+    );
     console.log('----------------------------------------');
     console.log(`[sources]    count=${result.sources.length}`);
 
@@ -90,7 +92,9 @@ async function runTests() {
 
     if (!TMDB_API_KEY) {
         console.error('[error] TMDB_API_KEY env var is required');
-        console.error('        usage: TMDB_API_KEY=xxx NODE_ENV=development npx tsx test-vidrock.ts');
+        console.error(
+            '        usage: TMDB_API_KEY=xxx NODE_ENV=development npx tsx test-vidrock.ts'
+        );
         process.exit(1);
     }
 
@@ -99,7 +103,9 @@ async function runTests() {
 
     const provider = new VidRockProvider();
 
-    console.log(`[init] provider id=${provider.id} name=${provider.name} enabled=${provider.enabled}`);
+    console.log(
+        `[init] provider id=${provider.id} name=${provider.name} enabled=${provider.enabled}`
+    );
 
     // health check
     console.log('\nchecking provider availability...');
@@ -116,7 +122,9 @@ async function runTests() {
     const movieTmdb = await fetchTmdbId(TMDB_API_KEY, 'movie', movieQuery);
 
     if (!movieTmdb) {
-        console.error(`[error] could not find tmdb entry for movie: ${movieQuery}`);
+        console.error(
+            `[error] could not find tmdb entry for movie: ${movieQuery}`
+        );
     } else {
         const movieMedia: ProviderMediaObject = {
             type: 'movie',
@@ -126,7 +134,9 @@ async function runTests() {
         };
 
         DEBUG_logs('movie media object', movieMedia);
-        console.log(`[test 1] tmdbId=${movieTmdb.id} title="${movieTmdb.title}" year=${movieTmdb.year}`);
+        console.log(
+            `[test 1] tmdbId=${movieTmdb.id} title="${movieTmdb.title}" year=${movieTmdb.year}`
+        );
 
         const movieResult = await provider.getMovieSources(movieMedia);
         printResult('movie test', movieMedia, movieResult);
