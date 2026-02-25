@@ -5,20 +5,21 @@ import type {
     ProviderResult,
 } from '@omss/framework';
 import axios from 'axios';
-import { IcefyResponse } from './icefy.types.js';
 
+// Icefy is behind Cloudflare and i can't fake the token..... idk how to get this running --> disabled
 export class IcefyProvider extends BaseProvider {
     readonly id = 'Icefy';
     readonly name = 'Icefy';
-    readonly enabled = true;
+    readonly enabled = false;
     readonly BASE_URL = 'https://streams.icefy.top';
     readonly HEADERS = {
         'User-Agent':
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150 Safari/537.36',
         Accept: 'application/json, text/javascript, */*; q=0.01',
         'Accept-Language': 'en-US,en;q=0.9',
-        Referer: "https://embed.icefy.top/",
-        Origin: "https://embed.icefy.top"
+        'Cookie': 'cf_clearance=uPAAkmZ3oIhWibNi0dAUILBj6DHl1LJdY2CdsKnX0rI-1700000000-0-150; _ga=GA1.2.123456789.1700000000; _gid=GA1.2.987654321.1700000000',
+        Referer: this.BASE_URL,
+        Origin: this.BASE_URL
     };
 
     readonly capabilities: ProviderCapabilities = {
@@ -46,27 +47,12 @@ export class IcefyProvider extends BaseProvider {
         media: ProviderMediaObject
     ): Promise<ProviderResult> {
         try {
-            // Build page URL
-            const pageUrl = this.buildPageUrl(media);
-
-            // Fetch page json
-            const req = await fetch(pageUrl, {
-                method: 'GET',
-                headers: this.HEADERS
-            })
-            if (!req.ok) {
-                return this.emptyResult(`HTTP error ${req.status}`, media);
-            }
-
-            const data = await req.json() as unknown as IcefyResponse;
-            if (!data) {
-                return this.emptyResult('Failed to fetch page', media);
-            }
+            const pageUrl = this.puildPlaylistUrl(media);
 
             const result: ProviderResult = {
                 sources: [
                     {
-                        url: this.createProxyUrl(data.url, this.HEADERS),
+                        url: this.createProxyUrl(pageUrl, this.HEADERS),
                         quality: '1080p',
                         type: 'hls',
                         audioTracks: [
@@ -99,12 +85,13 @@ export class IcefyProvider extends BaseProvider {
     /**
      * Build page URL based on media type
      */
-    private buildPageUrl(media: ProviderMediaObject): string {
+    private puildPlaylistUrl(media: ProviderMediaObject): string {
         if (media.type === 'movie') {
-            return `${this.BASE_URL}/movie/${media.tmdbId}`;
-        } else {
-            return `${this.BASE_URL}/tv/${media.tmdbId}/${media.s}/${media.e}`;
+            return `${this.BASE_URL}/movie/${media.tmdbId}/bump/master.m3u8`;
+        } else if (media.type === 'tv') {
+            return `${this.BASE_URL}/tv/${media.tmdbId}/${media.s}/${media.e}/bump/master.m3u8`;
         }
+        throw new Error('Unsupported media type');
     }
 
     /**

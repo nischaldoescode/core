@@ -17,11 +17,11 @@ import type {
     TwoEmbedLinks
 } from './2embed.types.js';
 
-
+// 2embed is inactive.... it only iframes vidsrc.pro
 export class TwoEmbedProvider extends BaseProvider {
     readonly id = 'twoembed';
     readonly name = '2Embed';
-    readonly enabled = true;
+    readonly enabled = false;
     readonly BASE_URL = 'https://www.2embed.cc';
     readonly PLAYER_URL = 'https://uqloads.xyz';
     readonly HEADERS = {
