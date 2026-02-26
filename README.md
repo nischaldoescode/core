@@ -217,6 +217,18 @@ See [CONTRIBUTING.md](https://github.com/omss-spec/omss-spec/blob/main/CONTRIBUT
 
 ---
 
+## Star History
+
+<a href="https://www.star-history.com/#cinepro-org/core&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=cinepro-org/core&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=cinepro-org/core&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=cinepro-org/core&type=date&legend=top-left" />
+ </picture>
+</a>
+
+---
+
 ## 🔒 Legal Notice
 
 CinePro Core is designed for **personal and home use only**. Users are responsible for ensuring compliance with applicable laws and terms of service for streaming sources. This software does not host, store, or distribute any copyrighted content. [github](https://github.com/cinepro-org)
