@@ -2,7 +2,7 @@ import { BaseProvider } from '@omss/framework';
 import type {
     ProviderCapabilities,
     ProviderMediaObject,
-    ProviderResult,
+    ProviderResult
 } from '@omss/framework';
 import axios from 'axios';
 
@@ -17,7 +17,7 @@ export class IcefyProvider extends BaseProvider {
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150 Safari/537.36',
         Accept: 'application/json, text/javascript, */*; q=0.01',
         'Accept-Language': 'en-US,en;q=0.9',
-        'Cookie': 'cf_clearance=uPAAkmZ3oIhWibNi0dAUILBj6DHl1LJdY2CdsKnX0rI-1700000000-0-150; _ga=GA1.2.123456789.1700000000; _gid=GA1.2.987654321.1700000000',
+        Cookie: 'cf_clearance=uPAAkmZ3oIhWibNi0dAUILBj6DHl1LJdY2CdsKnX0rI-1700000000-0-150; _ga=GA1.2.123456789.1700000000; _gid=GA1.2.987654321.1700000000',
         Referer: this.BASE_URL,
         Origin: this.BASE_URL
     };
