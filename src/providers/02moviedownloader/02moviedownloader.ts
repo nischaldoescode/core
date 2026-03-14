@@ -9,10 +9,9 @@ import type {
 } from '@omss/framework';
 import axios from 'axios';
 import {
-    MovieDownloaderDecryptResponse,
-    MovieDownloaderResponse
+    MovieDownloaderResponse,
+    Token
 } from './02moviedownloader.types.js';
-import { decryptData } from './decrypt.js';
 
 export class MovieDownloader extends BaseProvider {
     readonly id = '02moviedownloader';
@@ -46,36 +45,46 @@ export class MovieDownloader extends BaseProvider {
         return this.getSources(media);
     }
 
+    async getToken(media: ProviderMediaObject): Promise<string> {
+        const req = await fetch(this.BASE_URL + "/api/verify-robot", {
+            "headers": {
+                "accept": "*/*",
+                "cache-control": "no-cache",
+            },
+            "referrer": this.BASE_URL + "/api/download" + (media.type === 'movie' ? "/movie/" + media.tmdbId : "/tv/" + media.tmdbId + media.s + media.e),
+            "body": null,
+            "method": "POST",
+        });
+        const resp = await req.json() as Token;
+        if (resp.success && resp.token) {
+            return resp.token;
+        } else {
+            throw "no token found..."
+        }
+    }
+
     /**
-     * Main scraping logic - Parallel servers + decryption
+     * Main scraping logic
      */
-    // Complete the getSources method and add decryptData
     private async getSources(
         media: ProviderMediaObject
     ): Promise<ProviderResult> {
         try {
             const pageUrl = this.buildPageUrl(media);
 
-            const encryptedResponse: MovieDownloaderResponse =
-                await this.fetchPage(pageUrl, media);
-            if (!encryptedResponse || !encryptedResponse.data) {
-                return this.emptyResult('Failed to fetch page', media);
-            }
+            const token = await this.getToken(media);
 
-            // Decrypt data
-            const decryptedData = await decryptData(encryptedResponse.data);
-
+            const response: MovieDownloaderResponse =
+                await this.fetchPage(pageUrl, token, media);
+            
             // Map to ProviderResult
-            return this.mapToProviderResult(decryptedData, media);
+            return this.mapToProviderResult(response);
         } catch (error) {
-            return this.emptyResult('Failed to process sources', media);
+            return this.emptyResult(error instanceof Error ? error.message : 'Failed to process sources', media);
         }
     }
 
-    private mapToProviderResult(
-        data: MovieDownloaderDecryptResponse,
-        media: ProviderMediaObject
-    ): ProviderResult {
+    private mapToProviderResult(data: MovieDownloaderResponse): ProviderResult {
         const sources: Source[] = [];
 
         // Map download sources
@@ -200,11 +209,12 @@ export class MovieDownloader extends BaseProvider {
 
     private async fetchPage(
         url: string,
+        token: string,
         media: ProviderMediaObject
     ): Promise<any> {
         try {
             const response = await fetch(url, {
-                headers: { accept: 'application/json' }
+                headers: { accept: 'application/json', "x-session-token": token }
             });
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);

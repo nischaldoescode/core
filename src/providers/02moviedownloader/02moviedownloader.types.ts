@@ -1,10 +1,5 @@
-export interface MovieDownloaderResponse {
-    data: string;
-    encrypted: boolean;
-}
-
 // MovieDownloaderResponse.ts
-export interface MovieDownloaderDecryptResponse {
+export interface MovieDownloaderResponse {
     success: boolean;
     tmdbId: string;
     originalId: string;
@@ -60,4 +55,10 @@ export interface MovieDownloaderDecryptResponse {
         headers?: Record<string, string>;
         filename?: string;
     }>;
+}
+
+export interface Token {
+    success: boolean
+    token: string
+    expiresIn: number
 }
