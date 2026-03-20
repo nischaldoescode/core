@@ -265,10 +265,6 @@ export class MovieDownloader extends BaseProvider {
         media: ProviderMediaObject
     ): Promise<any> {
         try {
-            console.log(
-                `Fetching data for ${media.title} from ${url} with token: ${token}`
-            );
-
             const refererUrl =
                 this.BASE_URL +
                 '/api/download' +
@@ -287,10 +283,6 @@ export class MovieDownloader extends BaseProvider {
             });
 
             if (!response.ok) {
-                console.error(
-                    `Response status: ${response.status}, body:`,
-                    await response.text()
-                );
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 

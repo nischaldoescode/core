@@ -8,5 +8,5 @@ export const streamPatterns: RegExp[] = [
     /wasabisys.com/,
     /hakunaymatata.com/,
     /streamflixserver.site/,
-    /tripplestream.online/,
+    /tripplestream.online/
 ];
