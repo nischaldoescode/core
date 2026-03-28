@@ -282,7 +282,7 @@ export class UembedProvider extends BaseProvider {
             '360p': 3,
             '240p': 2,
             HD: 2,
-            Unknown: 1
+            Auto: 1
         };
         return priorities[quality] || 1;
     }

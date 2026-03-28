@@ -92,7 +92,7 @@ export class VidSrcProvider extends BaseProvider {
                     Origin: 'https://cloudnestra.com' // Set Origin header to second URL's origin
                 }),
                 type: 'hls', // m3u8 = HLS streaming
-                quality: `up to HD`, // VidSrc does not provide explicit quality labels, so we use a generic one
+                quality: `Auto`, // VidSrc does not provide explicit quality labels, so we use a generic one
                 audioTracks: [
                     {
                         label: 'English',

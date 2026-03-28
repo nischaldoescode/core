@@ -131,7 +131,7 @@ export class Fmovies4U extends BaseProvider {
                               }
                     ),
                     type,
-                    quality: stream.quality || 'HD',
+                    quality: stream.quality || 'Auto',
                     provider: {
                         id: this.id,
                         name: this.name
