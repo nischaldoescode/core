@@ -252,7 +252,7 @@ export class UembedProvider extends BaseProvider {
                 360: '360p',
                 240: '240p'
             };
-            return map[height] || 'Unknown';
+            return map[height] || 'Auto';
         }
 
         if (stream?.bandwidth) {
@@ -268,7 +268,7 @@ export class UembedProvider extends BaseProvider {
             }
         }
 
-        return 'Unknown';
+        return 'Auto';
     }
 
     private qualityPriority(quality: string): number {
