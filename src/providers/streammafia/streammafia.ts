@@ -10,23 +10,24 @@ import type {
 } from '@omss/framework';
 import { BaseProvider } from '@omss/framework';
 import axios from 'axios';
-import { ApiResponse } from './streammafia.types.js';
+import { ApiResponse, EncryptedPayload } from './streammafia.types.js';
+import { decryptStreamMafia } from './decrypt.js';
 
 export class StreamMafiaProvider extends BaseProvider {
     readonly id = 'streammafia';
     readonly name = 'MafiaEmbed';
-    readonly enabled = false;
+    readonly enabled = true;
 
-    readonly BASE_URL = 'https://streammafiacdn.in';
-    readonly EMBED_URL = 'https://embed.streammafia.to';
+    readonly BASE_URL = 'https://embedmafia.in';
+    readonly EMBED_URL = 'https://nhd.streammafia.to';
 
     readonly HEADERS = {
         'User-Agent':
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/150 Safari/537.36',
         Accept: 'application/json, text/javascript, */*; q=0.01',
         'Accept-Language': 'en-US,en;q=0.9',
-        Referer: this.BASE_URL,
-        Origin: this.BASE_URL
+        Referer: this.EMBED_URL + '/',
+        Origin: this.EMBED_URL
     };
 
     readonly capabilities: ProviderCapabilities = {
@@ -43,9 +44,7 @@ export class StreamMafiaProvider extends BaseProvider {
 
     async healthCheck(): Promise<boolean> {
         try {
-            const res = await axios.head(this.EMBED_URL, {
-                timeout: 5000
-            });
+            const res = await axios.head(this.EMBED_URL, { timeout: 5000 });
             return res.status === 200;
         } catch {
             return false;
@@ -57,12 +56,13 @@ export class StreamMafiaProvider extends BaseProvider {
     ): Promise<ProviderResult> {
         try {
             const url = this.buildPageUrl(media);
-            const api = await this.fetchPage(url);
+            const encrypted = await this.fetchPage(url);
 
-            if (!api || api.status !== 'success') {
+            if (!encrypted) {
                 return this.emptyResult('Invalid API response');
             }
 
+            const api = decryptStreamMafia(encrypted);
             return await this.mapApiResponse(api);
         } catch (err) {
             return this.emptyResult(
@@ -73,13 +73,13 @@ export class StreamMafiaProvider extends BaseProvider {
 
     private buildPageUrl(media: ProviderMediaObject): string {
         if (media.type === 'movie') {
-            return `${this.BASE_URL}/goal/?movie_tmdb_id=${media.tmdbId}`;
+            return `${this.BASE_URL}/api/movie/?id=${media.tmdbId}`;
         }
 
-        return `${this.BASE_URL}/goal/?tv_tmdb_id=${media.tmdbId}&season=${media.s}&episode=${media.e}`;
+        return `${this.BASE_URL}/api/?tv=${media.tmdbId}&season=${media.s}&episode=${media.e}`;
     }
 
-    private async fetchPage(url: string): Promise<ApiResponse | null> {
+    private async fetchPage(url: string): Promise<EncryptedPayload | null> {
         try {
             const res = await axios.get(url, { headers: this.HEADERS });
             return typeof res.data === 'string'
@@ -95,62 +95,91 @@ export class StreamMafiaProvider extends BaseProvider {
         const subtitles: Subtitle[] = [];
         const diagnostics: Diagnostic[] = [];
 
-        for (const file of api.data ?? []) {
-            const audioTracks = [this.extractAudioFromTitle(file.title)];
+        const fallbackAudio = this.extractAudioTrack(api.selected);
 
-            if (file.stream?.hls_streaming) {
-                const parsed = await this.parseHLS(file.stream.hls_streaming);
+        if (api.stream?.hls_streaming) {
+            const parsed = await this.parseHLS(api.stream.hls_streaming);
 
-                sources.push({
-                    url: this.createProxyUrl(file.stream.hls_streaming, {
-                        ...this.HEADERS,
-                        Referer: this.EMBED_URL,
-                        Origin: this.EMBED_URL
-                    }),
-                    type: 'hls',
-                    quality: parsed.quality,
-                    audioTracks:
-                        parsed.audioTracks.length > 0
-                            ? parsed.audioTracks
-                            : audioTracks,
-                    provider: {
-                        id: this.id,
-                        name: this.name
-                    }
+            sources.push({
+                url: this.createProxyUrl(api.stream.hls_streaming, {
+                    ...this.HEADERS,
+                    Referer: this.EMBED_URL + '/',
+                    Origin: this.EMBED_URL
+                }),
+                type: 'hls',
+                quality: parsed.quality || 'auto',
+                audioTracks:
+                    parsed.audioTracks.length > 0
+                        ? parsed.audioTracks
+                        : [fallbackAudio],
+                provider: {
+                    id: this.id,
+                    name: this.name
+                }
+            });
+
+            if (parsed.audioTracks.length === 0) {
+                diagnostics.push({
+                    code: 'LANGUAGE_INFERRED',
+                    message: `${this.name}: Audio language inferred from selected payload`,
+                    field: 'selected.lang',
+                    severity: 'info'
                 });
             }
+        }
 
-            for (const download of file.stream?.download ?? []) {
-                sources.push({
-                    url: this.createProxyUrl(download.url, {
-                        ...this.HEADERS,
-                        Referer: this.EMBED_URL,
-                        Origin: this.EMBED_URL
-                    }),
-                    type: this.inferSourceType(download.url),
-                    quality: this.normalizeQuality(download.quality, 'auto'),
-                    audioTracks,
-                    provider: {
-                        id: this.id,
-                        name: this.name
-                    }
-                });
-            }
+        for (const download of api.stream?.download ?? []) {
+            sources.push({
+                url: this.createProxyUrl(download.url, {
+                    ...this.HEADERS,
+                    Referer: this.EMBED_URL + '/',
+                    Origin: this.EMBED_URL
+                }),
+                type: this.inferSourceType(download.url),
+                quality: this.normalizeQuality(download.quality, 'unknown'),
+                audioTracks: [fallbackAudio],
+                provider: {
+                    id: this.id,
+                    name: this.name
+                }
+            });
+        }
+
+        if (!api.stream?.hls_streaming && !api.stream?.download?.length) {
+            diagnostics.push({
+                code: 'PROVIDER_ERROR',
+                message: `${this.name}: No playable sources found in API response`,
+                field: 'stream',
+                severity: 'error'
+            });
+        }
+
+        if ((api.switches?.length ?? 0) > 0) {
+            diagnostics.push({
+                code: 'PARTIAL_SCRAPE',
+                message: `${this.name}: Alternate switches were returned but only the selected stream was mapped`,
+                field: 'switches',
+                severity: 'info'
+            });
         }
 
         return { sources, subtitles, diagnostics };
     }
 
-    private extractAudioFromTitle(title: string): AudioTrack {
-        const match = title.match(/\(([^)]+)\)$/);
-        let lang = match?.[1]?.toLowerCase() ?? 'unknown';
+    private extractAudioTrack(selected: ApiResponse['selected']): AudioTrack {
+        const language =
+            selected?.lang_code?.trim().toLowerCase() ||
+            selected?.lang?.trim().toLowerCase() ||
+            'unknown';
 
-        if (lang === 'default') lang = 'en';
-        if (lang === 'original') lang = 'unknown';
+        const label =
+            selected?.lang?.trim() ||
+            selected?.lang_code?.toUpperCase() ||
+            'Unknown';
 
         return {
-            language: lang,
-            label: lang.toUpperCase()
+            language,
+            label
         };
     }
 
@@ -162,12 +191,11 @@ export class StreamMafiaProvider extends BaseProvider {
             const res = await axios.get(url, {
                 headers: {
                     ...this.HEADERS,
-                    Referer: this.EMBED_URL
+                    Referer: this.EMBED_URL + '/'
                 }
             });
 
             const content: string = res.data;
-
             const variants = this.parseVariants(content);
             const audioTracks = this.parseAudioTracks(content);
 
@@ -190,10 +218,9 @@ export class StreamMafiaProvider extends BaseProvider {
 
     private parseVariants(content: string): Array<{ resolution: number }> {
         const variants: Array<{ resolution: number }> = [];
-
         const regex = /RESOLUTION=\d+x(\d+)[^\n]*\n([^\n]+)/g;
 
-        let match;
+        let match: RegExpExecArray | null;
         while ((match = regex.exec(content)) !== null) {
             variants.push({
                 resolution: parseInt(match[1], 10)
@@ -210,12 +237,14 @@ export class StreamMafiaProvider extends BaseProvider {
         for (const line of lines) {
             if (!line.includes('TYPE=AUDIO')) continue;
 
-            const lang = line.match(/LANGUAGE="([^"]+)"/)?.[1] ?? 'unknown';
-            const name = line.match(/NAME="([^"]+)"/)?.[1] ?? lang;
+            const language =
+                line.match(/LANGUAGE="([^"]+)"/)?.[1]?.toLowerCase() ??
+                'unknown';
+            const label = line.match(/NAME="([^"]+)"/)?.[1] ?? language;
 
             tracks.push({
-                language: lang,
-                label: name
+                language,
+                label
             });
         }
 
@@ -226,8 +255,12 @@ export class StreamMafiaProvider extends BaseProvider {
         const clean = url.toLowerCase().split('?')[0];
 
         if (clean.endsWith('.m3u8')) return 'hls';
+        if (clean.endsWith('.mpd')) return 'dash';
         if (clean.endsWith('.mp4')) return 'mp4';
-        return 'hls';
+        if (clean.endsWith('.mkv')) return 'mkv';
+        if (clean.endsWith('.webm')) return 'webm';
+
+        return 'http';
     }
 
     private normalizeQuality(value?: string, fallback = 'unknown'): string {
@@ -242,7 +275,7 @@ export class StreamMafiaProvider extends BaseProvider {
         if (v.includes('360')) return '360p';
         if (v.includes('240')) return '240p';
 
-        return value.toLowerCase() + 'p';
+        return value;
     }
 
     private emptyResult(message: string): ProviderResult {
