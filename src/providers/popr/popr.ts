@@ -1,8 +1,3 @@
-/***
- *  steps
- * 1.
- * ***/
-
 import { BaseProvider } from '@omss/framework';
 import type {
     ProviderCapabilities,
@@ -35,13 +30,19 @@ export class PoprProvider extends BaseProvider {
     async getMovieSources(media: ProviderMediaObject): Promise<ProviderResult> {
         try {
             this.console.log('fetching movie response', media);
-            let sources = await this.fetchMovieSource(media);
+            let movieSource = await this.fetchSource(media, 'movie');
+
             return {
-                sources,
-                subtitles: [],
+                sources: movieSource.sources,
+                subtitles: movieSource.subtitles,
                 diagnostics: []
             };
         } catch (error) {
+            this.console.error(
+                error instanceof Error
+                    ? error.message
+                    : 'error at getting movie source'
+            );
             return this.emptyResult(
                 error instanceof Error
                     ? error.message
@@ -55,92 +56,98 @@ export class PoprProvider extends BaseProvider {
      * Fetch TV episode sources
      */
     async getTVSources(media: ProviderMediaObject): Promise<ProviderResult> {
-        return this.getSources(media);
-    }
-
-    /**
-     * Main scraping logic
-     */
-    private async getSources(
-        media: ProviderMediaObject
-    ): Promise<ProviderResult> {
         try {
+            this.console.log('fetching tv response', media);
+            let tvSource = await this.fetchSource(media, 'tv');
+
             return {
-                sources: [
-                    {
-                        // this.createProxyUrl(pageUrl, this.HEADERS)
-                        url: '',
-                        quality: '1080p',
-                        type: 'hls',
-                        audioTracks: [
-                            {
-                                label: 'English',
-                                language: 'eng'
-                            }
-                        ],
-                        provider: {
-                            name: this.name,
-                            id: this.id
-                        }
-                    }
-                ],
-                subtitles: [],
+                sources: tvSource.sources,
+                subtitles: tvSource.subtitles,
                 diagnostics: []
             };
         } catch (error) {
+            this.console.error(
+                error instanceof Error
+                    ? error.message
+                    : 'error at getting movie source'
+            );
             return this.emptyResult(
                 error instanceof Error
                     ? error.message
-                    : 'Unknown provider error',
+                    : 'error at getting source',
                 media
             );
         }
     }
 
-    async fetchMovieSource(media: ProviderMediaObject): Promise<Source[]> {
-        // fetch movie api
-        // https://popr.ink/api/vidnest?id={tmdb_id}&type=movie
+    // https://popr.ink/api/vidnest?id=262848&type=tv&server=catflix&season=1&episode=1
+    private async fetchSource(
+        media: ProviderMediaObject,
+        type: 'tv' | 'movie' = 'movie'
+    ): Promise<{ sources: Source[]; subtitles: Subtitle[] }> {
+        let servers = [
+            'default',
+            'catflix',
+            'hexa',
+            'Gama',
+            'Liligoon',
+            'Sigma',
+            'Prime',
+            'Alfa',
+            'Lamda'
+        ];
+        let playType = 'tv';
+        let ep = media.e || 1;
+        let season = media.s || 1;
+        let requestUrl = '';
 
-        const servers = ['default', 'catflix'];
         for (const server of servers) {
             try {
-                let movieRequest =
-                    `${this.BASE_URL}/api/vidnest?id=${media.tmdbId}&type=movie` +
-                    (server !== 'default' ? `&server=${server}` : '');
-                let data = await axios.get<VidnestResponse>(movieRequest, {
+                if (type === 'tv') {
+                    requestUrl = `${this.BASE_URL}/api/vidnest?id=${media.tmdbId}&type=${playType}&server=${server}&season=${season}&episode=${ep}`;
+                }
+                if (type === 'movie') {
+                    requestUrl =
+                        `${this.BASE_URL}/api/vidnest?id=${media.tmdbId}&type=movie` +
+                        (server !== 'default' ? `&server=${server}` : '');
+                }
+                let data = await axios.get<VidnestResponse>(requestUrl, {
                     headers: { ...this.HEADERS, Referer: `${this.BASE_URL}/` }
                 });
                 let response = data.data;
                 let url = response?.results?.[0].streams?.[0].url;
+                if (!url) continue;
+                let streamHeader = response?.results?.[0].streams?.[0].headers;
                 let quality = response?.results?.[0].streams?.[0].quality;
                 let streamType = path.extname(new URL(url).pathname);
-                if (!url) continue;
-                return [
-                    {
-                        url,
-                        type: streamType === 'mp4' ? 'mp4' : 'hls',
-                        quality: quality || 'auto',
-                        audioTracks: [],
-                        provider: { name: this.name, id: this.id }
-                    }
-                ];
+                const subtitles = response.results?.[0]?.subtitles || [];
+                let INVALID_QUALITIES = ['Hindi', 'English', 'MAIN'];
+                return {
+                    sources: [
+                        {
+                            url: this.createProxyUrl(url, streamHeader),
+                            type: streamType === '.m3u8' ? 'hls' : 'mp4',
+                            quality: INVALID_QUALITIES.includes(quality)
+                                ? 'auto'
+                                : quality || 'auto',
+                            audioTracks: [],
+                            provider: { name: this.name, id: this.id }
+                        }
+                    ],
+                    subtitles: subtitles.map((sub) => ({
+                        url: sub.url,
+                        format: 'vtt',
+                        label: sub.lang || 'Unknown'
+                    }))
+                };
             } catch (error) {
                 continue;
             }
         }
-        return [];
-    }
-
-    async fetchMovieSubstitles(
-        media: ProviderMediaObject
-    ): Promise<Subtitle[]> {
-        return [
-            {
-                url: 'string',
-                label: 'string',
-                format: 'vtt'
-            }
-        ];
+        return {
+            sources: [],
+            subtitles: []
+        };
     }
 
     private emptyResult(

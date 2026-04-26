@@ -12,6 +12,10 @@ export type VidnestResponse = {
                 Origin?: string;
             };
         }[];
-        subtitles?: unknown[];
+        subtitles?: {
+            url: string;
+            format: string;
+            lang: string;
+        }[];
     }[];
 };
