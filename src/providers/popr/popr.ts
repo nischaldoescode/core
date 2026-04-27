@@ -4,11 +4,11 @@ import type {
     ProviderMediaObject,
     ProviderResult,
     Source,
+    SourceType,
     Subtitle
 } from '@omss/framework';
 import axios from 'axios';
 import { VidnestResponse } from './popr.types.js';
-import path from 'node:path';
 export class PoprProvider extends BaseProvider {
     readonly id = 'popr';
     readonly name = 'Popr';
@@ -85,7 +85,7 @@ export class PoprProvider extends BaseProvider {
         media: ProviderMediaObject,
         type: 'tv' | 'movie' = 'movie'
     ): Promise<{ sources: Source[]; subtitles: Subtitle[] }> {
-        let servers = [
+        const servers = [
             'default',
             'catflix',
             'hexa',
@@ -97,66 +97,95 @@ export class PoprProvider extends BaseProvider {
             'Lamda',
             'ynx_vidsrc'
         ];
-        let playType = 'tv';
-        let ep = media.e || 1;
-        let season = media.s || 1;
-        let requestUrl = '';
 
-        for (const server of servers) {
-            try {
-                if (type === 'tv') {
-                    requestUrl = `${this.BASE_URL}/api/vidnest?id=${media.tmdbId}&type=${playType}&server=${server}&season=${season}&episode=${ep}`;
-                }
-                if (type === 'movie') {
-                    requestUrl =
-                        `${this.BASE_URL}/api/vidnest?id=${media.tmdbId}&type=movie` +
-                        (server !== 'default' ? `&server=${server}` : '');
-                }
-                let data = await axios.get<VidnestResponse>(requestUrl, {
-                    headers: { ...this.HEADERS, Referer: `${this.BASE_URL}/` }
-                });
-                let response = data.data;
-                let url = response?.results?.[0].streams?.[0].url;
-                if (!url) continue;
-                let streamHeader = response?.results?.[0].streams?.[0].headers;
-                let quality = response?.results?.[0].streams?.[0].quality;
-                let streamType = path.extname(new URL(url).pathname);
-                const subtitles = response.results?.[0]?.subtitles || [];
-                let INVALID_QUALITIES = ['Hindi', 'English', 'MAIN'];
-                let QUALITIES = ['Hindi', 'English'];
-                let languages = QUALITIES.includes(quality);
-                return {
-                    sources: [
-                        {
-                            url: this.createProxyUrl(url, streamHeader),
-                            type: streamType === '.m3u8' ? 'hls' : 'mp4',
-                            quality: INVALID_QUALITIES.includes(quality)
-                                ? 'auto'
-                                : quality || 'auto',
-                            audioTracks: [
-                                {
-                                    language: languages
-                                        ? quality.toLowerCase().substring(0, 3)
-                                        : 'eng',
-                                    label: languages ? quality : 'English'
-                                }
-                            ],
-                            provider: { name: this.name, id: this.id }
-                        }
-                    ],
-                    subtitles: subtitles.map((sub) => ({
+        const ep = media.e || 1;
+        const season = media.s || 1;
+
+        const buildUrl = (server: string) => {
+            if (type === 'tv') {
+                return `${this.BASE_URL}/api/vidnest?id=${media.tmdbId}&type=tv&server=${server}&season=${season}&episode=${ep}`;
+            }
+            return (
+                `${this.BASE_URL}/api/vidnest?id=${media.tmdbId}&type=movie` +
+                (server !== 'default' ? `&server=${server}` : '')
+            );
+        };
+
+        const requests = servers.map(
+            (server) =>
+                axios
+                    .get<VidnestResponse>(buildUrl(server), {
+                        headers: this.HEADERS,
+                        timeout: 8000
+                    })
+                    .then(({ data }) => {
+                        const stream = data?.results?.[0]?.streams?.[0];
+                        if (!stream?.url) return null;
+
+                        const ext = (new URL(stream.url).pathname.match(
+                            /\.[^./]+$/
+                        ) || [''])[0];
+
+                        const quality = stream.quality;
+                        const INVALID_QUALITIES = ['Hindi', 'English', 'MAIN'];
+                        const QUALITIES = ['Hindi', 'English'];
+                        const languages = QUALITIES.includes(quality);
+
+                        return {
+                            source: {
+                                url: this.createProxyUrl(
+                                    stream.url,
+                                    stream.headers
+                                ),
+                                type: (ext === '.m3u8'
+                                    ? 'hls'
+                                    : 'mp4') as SourceType,
+                                quality: INVALID_QUALITIES.includes(quality)
+                                    ? 'auto'
+                                    : quality || 'auto',
+                                audioTracks: [
+                                    {
+                                        language: languages
+                                            ? quality.toLowerCase().slice(0, 3)
+                                            : 'eng',
+                                        label: languages ? quality : 'English'
+                                    }
+                                ],
+                                provider: { name: this.name, id: this.id }
+                            },
+                            subtitles: data.results?.[0]?.subtitles || []
+                        };
+                    })
+                    .catch(() => null) // swallow per-request errors
+        );
+
+        const results = await Promise.allSettled(requests);
+
+        const sources: Source[] = [];
+        const subtitlesMap = new Map<string, Subtitle>();
+
+        for (const res of results) {
+            if (res.status !== 'fulfilled' || !res.value) continue;
+
+            sources.push(res.value.source);
+
+            for (const sub of res.value.subtitles) {
+                if (!sub?.url) continue;
+
+                // dedupe subtitles by URL
+                if (!subtitlesMap.has(sub.url)) {
+                    subtitlesMap.set(sub.url, {
                         url: sub.url,
                         format: 'vtt',
                         label: sub.lang || 'Unknown'
-                    }))
-                };
-            } catch (error) {
-                continue;
+                    });
+                }
             }
         }
+
         return {
-            sources: [],
-            subtitles: []
+            sources,
+            subtitles: Array.from(subtitlesMap.values())
         };
     }
 
