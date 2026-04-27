@@ -45,16 +45,19 @@ jobs:
       app_version: ${{ steps.meta.outputs.app_version }}
       arch_tag_amd64: ${{ steps.meta.outputs.arch_tag_amd64 }}
       arch_tag_arm64: ${{ steps.meta.outputs.arch_tag_arm64 }}
+      created: ${{ steps.meta.outputs.created }}   # NEW
     steps:
       - id: meta
         run: |
           RUN_DATE="$(date +%Y%m%d)"
           APP_VERSION="main-${RUN_DATE}-${{ github.run_number }}"
+          CREATED="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
           {
             echo "run_date=${RUN_DATE}"
             echo "app_version=${APP_VERSION}"
             echo "arch_tag_amd64=${APP_VERSION}-amd64"
             echo "arch_tag_arm64=${APP_VERSION}-arm64"
+            echo "created=${CREATED}"
           } >> "$GITHUB_OUTPUT"
 
   build-amd64:
@@ -112,6 +115,12 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LC }}:${{ needs.prepare.outputs.arch_tag_amd64 }}
           cache-from: type=gha,scope=amd64
           cache-to: type=gha,mode=max,scope=amd64
+          build-args: |
+            VERSION=${{ needs.prepare.outputs.app_version }}
+            REVISION=${{ github.sha }}
+            CREATED=${{ needs.prepare.outputs.created }}
+            DESCRIPTION=${{ env.IMAGE_DESCRIPTION }}
+            SOURCE=${{ github.server_url }}/${{ github.repository }}
 
   build-arm64:
     runs-on: ubuntu-24.04-arm
@@ -148,6 +157,12 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LC }}:${{ needs.prepare.outputs.arch_tag_arm64 }}
           cache-from: type=gha,scope=arm64
           cache-to: type=gha,mode=max,scope=arm64
+          build-args: |
+            VERSION=${{ needs.prepare.outputs.app_version }}
+            REVISION=${{ github.sha }}
+            CREATED=${{ needs.prepare.outputs.created }}
+            DESCRIPTION=${{ env.IMAGE_DESCRIPTION }}
+            SOURCE=${{ github.server_url }}/${{ github.repository }}
 
   manifest:
     runs-on: ubuntu-latest
