@@ -13,7 +13,7 @@ Built with [@omss/framework](https://www.npmjs.com/package/@omss/framework) for 
 [![GitHub License](https://img.shields.io/badge/License-PolyForm_Noncommercial_License_1.0.0-orange?style=flat-square)
 ](LICENSE)
 
-**[📖 Documentation](https://cinepro.mintlify.app)** · **[💬 Discussions](https://github.com/orgs/cinepro-org/discussions)** · **[🐛 Issues](https://github.com/cinepro-org/core/issues)**
+**[📖 Documentation](https://docs.cinepro.cc)** · **[💬 Discussions](https://github.com/orgs/cinepro-org/discussions)** · **[🐛 Issues](https://github.com/cinepro-org/core/issues)**
 
 </div>
 
@@ -45,7 +45,7 @@ cp .env.example .env   # add your TMDB_API_KEY
 npm run dev            # http://localhost:3000
 ```
 
-For Docker, production setup, and full configuration options → **[Quickstart](https://cinepro.mintlify.app/quickstart)**
+For Docker, production setup, and full configuration options → **[Quickstart](https://docs.cinepro.cc/quickstart)**
 
 ## Features
 
@@ -58,7 +58,7 @@ For Docker, production setup, and full configuration options → **[Quickstart](
 
 ## Documentation
 
-Full docs, API reference, configuration guide, and provider development at **[the CinePro Docs](https://cinepro.mintlify.app)**.
+Full docs, API reference, configuration guide, and provider development at **[the CinePro Docs](https://docs.cinepro.cc)**.
 
 ## Contributing
 
@@ -80,4 +80,4 @@ See the Documentation and the [OMSS contributing guide](https://github.com/omss-
 PolyForm Noncommercial License 1.0.0 © CinePro Organization — see [LICENSE](LICENSE) for details.  
 This software does not host, store, or distribute any copyrighted content.
 ANY DMCA Complaints should be opened at the hosting provider and not directed at us.
-[Read more here](https://cinepro.mintlify.app/core/general-information/license)
+[Read more here](https://docs.cinepro.cc/core/general-information/license)
