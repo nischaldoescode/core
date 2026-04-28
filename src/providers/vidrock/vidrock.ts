@@ -111,7 +111,7 @@ export class VidRockProvider extends BaseProvider {
 
                 sources.push({
                     url: finalUrl,
-                    quality: '1080p',
+                    quality: '1080',
                     type: 'hls',
                     audioTracks: [
                         {
@@ -197,7 +197,8 @@ export class VidRockProvider extends BaseProvider {
     private async fetchPage(url: string): Promise<any | null> {
         try {
             const response = await fetch(url, {
-                headers: this.HEADERS
+                headers: {...this.HEADERS, Referer: this.BASE_URL},
+                referrer: this.BASE_URL
             });
 
             if (response.status !== 200) return null;

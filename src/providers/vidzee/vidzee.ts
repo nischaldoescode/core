@@ -16,7 +16,7 @@ export class VidZeeProvider extends BaseProvider {
     readonly PLAYER_URL = 'https://player.vidzee.wtf';
     readonly HEADERS = {
         'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150 Safari/537.36',
+            'Mozilla/5.0 (X11; Ubuntu; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.7051.98 Safari/537.36',
         Accept: 'application/json, text/javascript, */*; q=0.01',
         'Accept-Language': 'en-US,en;q=0.9',
         Referer: this.PLAYER_URL,
@@ -175,7 +175,7 @@ export class VidZeeProvider extends BaseProvider {
         params: { type: 'movie' | 'tv'; season?: string; episode?: string }
     ): Promise<StreamResponse | null> {
         try {
-            let url = `https://player.vidzee.wtf/api/server?id=${tmdbId}&sr=${serverId}`;
+            let url = this.PLAYER_URL+`/api/server?id=${tmdbId}&sr=${serverId}`;
 
             if (params.type === 'tv' && params.season && params.episode) {
                 url += `&ss=${params.season}&ep=${params.episode}`;

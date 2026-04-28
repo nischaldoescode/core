@@ -56,7 +56,7 @@ export class IcefyProvider extends BaseProvider {
                 sources: [
                     {
                         url: this.createProxyUrl(streamUrl, this.HEADERS),
-                        quality: '1080p',
+                        quality: '1080',
                         type: 'hls',
                         audioTracks: [
                             {

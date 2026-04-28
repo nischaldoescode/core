@@ -62,7 +62,7 @@ export class RgShowsProvider extends BaseProvider {
                 sources: [
                     {
                         url: this.createProxyUrl(resp.stream.url, this.HEADERS),
-                        quality: '1080p',
+                        quality: '1080',
                         type: 'mp4',
                         audioTracks: [
                             {
