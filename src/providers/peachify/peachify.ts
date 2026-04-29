@@ -11,31 +11,15 @@ import type {
     PeachifyRawSource,
     PeachifyRawSubtitle
 } from './peachify.types.js';
-/**
- * aes-gcm decryption key used by peachify for encrypted api responses.
- * this is embedded in their frontend bundle.
- */
-const ENCRYPTION_KEY =
-    'd8f2a1b5e9c470814f6b2c3a5d8e7f901a2b3c4d5e3f7a8b9c0d1e2f3a4b5c6d';
-
-/**
- * list of peachify-compatible api base urls.
- * the framework will try each in order and merge all results.
- */
-const PEACHIFY_SERVERS = [
-    'https://uwu.peachify.top/moviebox',
-    'https://usa.eat-peach.sbs/holly',
-    'https://usa.eat-peach.sbs/air',
-    'https://usa.eat-peach.sbs/multi',
-    'https://usa.eat-peach.sbs/ice',
-    'https://usa.eat-peach.sbs/net'
-] as const;
+import decrypt from './decrypt.js';
 
 export class PeachifyProvider extends BaseProvider {
     readonly id = 'Peachify';
     readonly name = 'Peachify';
     readonly enabled = true;
     readonly BASE_URL = 'https://peachify.top';
+    readonly MOVIEBOX_URL = 'https://uwu.peachify.top';
+    readonly API_URL = 'https://usa.eat-peach.sbs';
     readonly HEADERS = {
         'User-Agent':
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -44,6 +28,15 @@ export class PeachifyProvider extends BaseProvider {
         Referer: this.BASE_URL,
         Origin: this.BASE_URL
     };
+
+    readonly PEACHIFY_SERVERS = [
+        `${this.MOVIEBOX_URL}/moviebox`,
+        `${this.API_URL}/holly`,
+        `${this.API_URL}/air`,
+        `${this.API_URL}/multi`,
+        `${this.API_URL}/ice`,
+        `${this.API_URL}/net`
+    ];
 
     readonly capabilities: ProviderCapabilities = {
         supportedContentTypes: ['movies', 'tv']
@@ -67,7 +60,7 @@ export class PeachifyProvider extends BaseProvider {
         media: ProviderMediaObject
     ): Promise<ProviderResult> {
         const results = await Promise.allSettled(
-            PEACHIFY_SERVERS.map((server) =>
+            this.PEACHIFY_SERVERS.map((server) =>
                 this.fetchFromServer(server, media)
             )
         );
@@ -96,7 +89,7 @@ export class PeachifyProvider extends BaseProvider {
         if (failCount > 0 && sources.length > 0) {
             diagnostics.push({
                 code: 'PARTIAL_SCRAPE',
-                message: `${failCount} of ${PEACHIFY_SERVERS.length} peachify servers failed to respond`,
+                message: `${failCount} of ${this.PEACHIFY_SERVERS.length} peachify servers failed to respond`,
                 field: '',
                 severity: 'warning'
             });
@@ -130,7 +123,7 @@ export class PeachifyProvider extends BaseProvider {
         let body = (await response.json()) as PeachifyApiResponse;
 
         if (body.isEncrypted && body.data) {
-            const decrypted = await this.decrypt(body.data, ENCRYPTION_KEY);
+            const decrypted = await decrypt(body.data);
             if (!decrypted) return null;
             body = decrypted;
         }
@@ -195,66 +188,6 @@ export class PeachifyProvider extends BaseProvider {
         }
 
         throw new Error(`unsupported media type: ${media.type}`);
-    }
-
-    /**
-     * decrypts a peachify aes-gcm ciphertext string.
-     * the payload format is: iv.tag.ciphertext — all url-safe base64 encoded.
-     * the hex key is imported as a raw aes-gcm key via the web crypto api.
-     */
-    private async decrypt(
-        payload: string,
-        hexKey: string
-    ): Promise<PeachifyApiResponse | null> {
-        try {
-            const decode = (b64url: string): Uint8Array => {
-                const padded =
-                    b64url.replace(/-/g, '+').replace(/_/g, '/') +
-                    '='.repeat((4 - (b64url.length % 4)) % 4);
-                const binary = atob(padded);
-                const bytes = new Uint8Array(binary.length);
-                for (let i = 0; i < binary.length; i++) {
-                    bytes[i] = binary.charCodeAt(i);
-                }
-                return bytes;
-            };
-
-            const importKey = async (hex: string) => {
-                const raw = new Uint8Array(
-                    hex.match(/.{1,2}/g)!.map((b) => parseInt(b, 16))
-                );
-                return crypto.subtle.importKey(
-                    'raw',
-                    raw,
-                    { name: 'AES-GCM' },
-                    false,
-                    ['decrypt']
-                );
-            };
-
-            const [ivPart, tagPart, cipherPart] = payload.split('.');
-            const iv = decode(ivPart);
-            const tag = decode(tagPart);
-            const cipher = decode(cipherPart);
-
-            // web crypto expects the ghash tag appended to the ciphertext
-            const combined = new Uint8Array(tag.length + cipher.length);
-            combined.set(tag, 0);
-            combined.set(cipher, tag.length);
-
-            const key = await importKey(hexKey);
-            const plaintext = await crypto.subtle.decrypt(
-                { name: 'AES-GCM', iv },
-                key,
-                combined
-            );
-
-            return JSON.parse(
-                new TextDecoder().decode(plaintext)
-            ) as PeachifyApiResponse;
-        } catch {
-            return null;
-        }
     }
 
     /**
