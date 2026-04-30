@@ -26,13 +26,37 @@ const VIDEASY_SERVERS: readonly VideasyServer[] = [
     // { name: 'hdmovie',     url: 'https://api.videasy.net/hdmovie/sources-with-title',     language: 'english' },
     // { name: 'primewire',   url: 'https://api2.videasy.net/primewire/sources-with-title',  language: 'english' },
 
-        { name: 'cuevana',     url: 'https://api2.videasy.net/cuevana/sources-with-title',    language: 'english' },
-        { name: 'mb-flix',     url: 'https://api.videasy.net/mb-flix/sources-with-title',     language: 'english' },
-        { name: '1movies',     url: 'https://api.videasy.net/1movies/sources-with-title',     language: 'english' },
-        { name: 'cdn',         url: 'https://api.videasy.net/cdn/sources-with-title',         language: 'english' },
-        { name: 'superflix',   url: 'https://api.videasy.net/superflix/sources-with-title',   language: 'english' },
-        { name: 'lamovie',     url: 'https://api.videasy.net/lamovie/sources-with-title',     language: 'english' }
-    ] as const;
+    {
+        name: 'cuevana',
+        url: 'https://api2.videasy.net/cuevana/sources-with-title',
+        language: 'english'
+    },
+    {
+        name: 'mb-flix',
+        url: 'https://api.videasy.net/mb-flix/sources-with-title',
+        language: 'english'
+    },
+    {
+        name: '1movies',
+        url: 'https://api.videasy.net/1movies/sources-with-title',
+        language: 'english'
+    },
+    {
+        name: 'cdn',
+        url: 'https://api.videasy.net/cdn/sources-with-title',
+        language: 'english'
+    },
+    {
+        name: 'superflix',
+        url: 'https://api.videasy.net/superflix/sources-with-title',
+        language: 'english'
+    },
+    {
+        name: 'lamovie',
+        url: 'https://api.videasy.net/lamovie/sources-with-title',
+        language: 'english'
+    }
+] as const;
 
 export class VideasyProvider extends BaseProvider {
     readonly id = 'Videasy';
