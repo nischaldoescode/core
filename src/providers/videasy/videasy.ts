@@ -4,7 +4,7 @@ import type {
     ProviderMediaObject,
     ProviderResult
 } from '@omss/framework';
-import type { VideasyServer } from './videasy.types.js';;
+import type { VideasyServer } from './videasy.types.js';
 import { decryptResponse } from './decryptor.js';
 
 /**
@@ -21,10 +21,19 @@ const VIDEASY_SERVERS: readonly VideasyServer[] = [
     // { name: 'meine-de',   url: 'https://api.videasy.net/meine/sources-with-title', language: 'german' },
     // { name: 'meine-it',   url: 'https://api.videasy.net/meine/sources-with-title', language: 'italian' },
     // { name: 'meine-fr',   url: 'https://api.videasy.net/meine/sources-with-title', language: 'french' },
-    { name: 'mb-flix',    url: 'https://api.videasy.net/mb-flix/sources-with-title' },
-    { name: '1movies',    url: 'https://api.videasy.net/1movies/sources-with-title' },
-    { name: 'cdn',        url: 'https://api.videasy.net/cdn/sources-with-title' },
-    { name: 'superflix',  url: 'https://api.videasy.net/superflix/sources-with-title' },
+    {
+        name: 'mb-flix',
+        url: 'https://api.videasy.net/mb-flix/sources-with-title'
+    },
+    {
+        name: '1movies',
+        url: 'https://api.videasy.net/1movies/sources-with-title'
+    },
+    { name: 'cdn', url: 'https://api.videasy.net/cdn/sources-with-title' },
+    {
+        name: 'superflix',
+        url: 'https://api.videasy.net/superflix/sources-with-title'
+    }
 ] as const;
 
 export class VideasyProvider extends BaseProvider {
@@ -33,14 +42,15 @@ export class VideasyProvider extends BaseProvider {
     readonly enabled = true;
     readonly BASE_URL = 'https://api.videasy.net';
     readonly HEADERS = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
         Accept: 'application/json, */*; q=0.01',
         Referer: 'https://player.videasy.net/',
-        Origin: 'https://player.videasy.net',
+        Origin: 'https://player.videasy.net'
     };
 
     readonly capabilities: ProviderCapabilities = {
-        supportedContentTypes: ['movies', 'tv'],
+        supportedContentTypes: ['movies', 'tv']
     };
 
     async getMovieSources(media: ProviderMediaObject): Promise<ProviderResult> {
@@ -52,9 +62,11 @@ export class VideasyProvider extends BaseProvider {
     }
 
     // fans out to all servers in parallel, merges results
-    private async getSources(media: ProviderMediaObject): Promise<ProviderResult> {
+    private async getSources(
+        media: ProviderMediaObject
+    ): Promise<ProviderResult> {
         const results = await Promise.allSettled(
-            VIDEASY_SERVERS.map(server => this.fetchFromServer(server, media))
+            VIDEASY_SERVERS.map((server) => this.fetchFromServer(server, media))
         );
 
         const sources: ProviderResult['sources'] = [];
@@ -76,12 +88,15 @@ export class VideasyProvider extends BaseProvider {
                 code: 'PARTIAL_SCRAPE',
                 message: `${failCount} of ${VIDEASY_SERVERS.length} videasy servers did not return results`,
                 field: '',
-                severity: 'warning',
+                severity: 'warning'
             });
         }
 
         if (sources.length === 0) {
-            return this.emptyResult('all videasy servers returned no sources', media);
+            return this.emptyResult(
+                'all videasy servers returned no sources',
+                media
+            );
         }
 
         return { sources, subtitles, diagnostics };
@@ -120,35 +135,43 @@ export class VideasyProvider extends BaseProvider {
         }
 
         const sources: ProviderResult['sources'] = decrypted.sources
-            .filter(s => !!s?.url)
-            .map(s => ({
+            .filter((s) => !!s?.url)
+            .map((s) => ({
                 url: this.createProxyUrl(s.url, this.HEADERS),
                 type: this.detectType(s.url, s.type),
                 quality: this.normalizeQuality(s.quality),
-                audioTracks: [{ language: this.resolveLanguage(server), label: this.resolveLanguageLabel(server) }],
-                provider: { id: this.id, name: this.name },
+                audioTracks: [
+                    {
+                        language: this.resolveLanguage(server),
+                        label: this.resolveLanguageLabel(server)
+                    }
+                ],
+                provider: { id: this.id, name: this.name }
             }));
 
         const subtitles: ProviderResult['subtitles'] = decrypted.subtitles
-            .filter(s => !!s?.url)
-            .map(s => ({
+            .filter((s) => !!s?.url)
+            .map((s) => ({
                 url: this.createProxyUrl(s.url, {}),
                 label: s.lang ?? s.language ?? 'Unknown',
-                format: 'vtt' as const,
+                format: 'vtt' as const
             }));
 
         return { sources, subtitles, diagnostics: [] };
     }
 
     // builds query params — title passed as plain string, URLSearchParams handles encoding
-    private buildParams(server: VideasyServer, media: ProviderMediaObject): Record<string, string> {
+    private buildParams(
+        server: VideasyServer,
+        media: ProviderMediaObject
+    ): Record<string, string> {
         const base: Record<string, string> = {
-            title: media.title ?? '',           // no encodeURIComponent — URLSearchParams does it
+            title: media.title ?? '', // no encodeURIComponent — URLSearchParams does it
             mediaType: media.type === 'movie' ? 'movie' : 'tv',
             tmdbId: String(media.tmdbId),
             imdbId: media.imdbId ?? '',
             episodeId: String(media.type === 'tv' ? (media.e ?? 1) : 1),
-            seasonId: String(media.type === 'tv' ? (media.s ?? 1) : 1),
+            seasonId: String(media.type === 'tv' ? (media.s ?? 1) : 1)
         };
 
         if (media.type === 'movie') {
@@ -165,7 +188,11 @@ export class VideasyProvider extends BaseProvider {
     // detects stream type from url extension and api hint
     private detectType(url: string, hint?: string): 'hls' | 'mp4' {
         const lower = (hint ?? '').toLowerCase();
-        if (lower.includes('hls') || lower.includes('m3u8') || url.toLowerCase().includes('.m3u8')) {
+        if (
+            lower.includes('hls') ||
+            lower.includes('m3u8') ||
+            url.toLowerCase().includes('.m3u8')
+        ) {
             return 'hls';
         }
         return 'mp4';
@@ -174,32 +201,55 @@ export class VideasyProvider extends BaseProvider {
     // guards against language labels being passed as quality (e.g. "Hindi")
     private normalizeQuality(raw?: string): string {
         if (!raw) return 'unknown';
-        return /^\d{3,4}p$|^4K$|^8K$|^HD$|^SD$/i.test(raw.trim()) ? raw.trim() : 'unknown';
+        return /^\d{3,4}p$|^4K$|^8K$|^HD$|^SD$/i.test(raw.trim())
+            ? raw.trim()
+            : 'unknown';
     }
 
     private resolveLanguage(server: VideasyServer): string {
         if (!server.language) return 'en';
-        const map: Record<string, string> = { german: 'de', italian: 'it', french: 'fr' };
+        const map: Record<string, string> = {
+            german: 'de',
+            italian: 'it',
+            french: 'fr'
+        };
         return map[server.language] ?? 'en';
     }
 
     private resolveLanguageLabel(server: VideasyServer): string {
         if (!server.language) return 'English';
-        const map: Record<string, string> = { german: 'German', italian: 'Italian', french: 'French' };
+        const map: Record<string, string> = {
+            german: 'German',
+            italian: 'Italian',
+            french: 'French'
+        };
         return map[server.language] ?? 'English';
     }
 
-    private emptyResult(message: string, _media: ProviderMediaObject): ProviderResult {
+    private emptyResult(
+        message: string,
+        _media: ProviderMediaObject
+    ): ProviderResult {
         return {
             sources: [],
             subtitles: [],
-            diagnostics: [{ code: 'PROVIDER_ERROR', message: `${this.name}: ${message}`, field: '', severity: 'error' }],
+            diagnostics: [
+                {
+                    code: 'PROVIDER_ERROR',
+                    message: `${this.name}: ${message}`,
+                    field: '',
+                    severity: 'error'
+                }
+            ]
         };
     }
 
     async healthCheck(): Promise<boolean> {
         try {
-            const res = await fetch(this.BASE_URL, { method: 'HEAD', headers: this.HEADERS });
+            const res = await fetch(this.BASE_URL, {
+                method: 'HEAD',
+                headers: this.HEADERS
+            });
             return res.status < 500;
         } catch {
             return false;

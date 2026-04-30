@@ -41,7 +41,7 @@ export async function decryptResponse(
         const res = await fetch(DEC_API, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: blob, id: tmdbId }),
+            body: JSON.stringify({ text: blob, id: tmdbId })
         });
 
         if (!res.ok) return null;
@@ -52,7 +52,7 @@ export async function decryptResponse(
 
         const payload: DecryptedPayload = {
             sources: json.result.sources ?? [],
-            subtitles: json.result.subtitles ?? [],
+            subtitles: json.result.subtitles ?? []
         };
 
         cache.set(key, payload);
